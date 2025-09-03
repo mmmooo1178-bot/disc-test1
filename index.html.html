@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>اختبار الشخصية بنمط DISC – مدرسة ضباط الصف القياديين</title>
+<style>
+  body{font-family:"Tahoma","Noto Sans Arabic",Arial;background:#f1f5f9;color:#0f172a;margin:0}
+  header{background:#0ea5e9;color:#fff;padding:18px;text-align:center}
+  header h1{margin:0;font-size:20px;font-weight:900}
+  header p{margin:6px 0 0;font-size:13px;opacity:.95}
+  .container{max-width:1000px;margin:auto;padding:16px}
+  .brand{background:#e0f2fe;border:1px solid #7dd3fc;color:#075985;padding:10px 12px;border-radius:12px;font-weight:800;margin:12px 0}
+  .box{background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:14px;margin:12px 0}
+  .group{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin:12px 0;background:#f8fafc}
+  .row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
+  .ml{display:flex;gap:14px;align-items:center;justify-content:flex-end}
+  .pill{font-size:12px;background:#e2f2ff;color:#0369a1;border-radius:999px;padding:4px 8px}
+  input[type=radio]{width:18px;height:18px}
+  .note{font-size:14px;color:#334155}
+  .progress{margin:8px 0 16px;font-size:14px;color:#0369a1;font-weight:800}
+  button#submit{margin-top:16px;background:#0ea5e9;color:#fff;border:none;border-radius:10px;padding:12px 18px;font-weight:900;font-size:16px;cursor:pointer}
+  #result{display:none;margin-top:16px}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .chip{display:inline-flex;gap:6px;align-items:center;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:999px;padding:4px 10px;font-size:13px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .D{background:#ef4444} .I{background:#f59e0b} .S{background:#10b981} .C{background:#3b82f6}
+  .barrow{display:grid;grid-template-columns:110px 1fr 60px;gap:10px;align-items:center;margin:8px 0}
+  .bar{height:14px;background:#e2e8f0;border-radius:999px;overflow:hidden}
+  .fill{height:100%}
+  canvas{max-width:100%;border-radius:12px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.08);margin-top:12px}
+  footer{text-align:center;color:#64748b;font-size:12px;padding:12px 0;margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>اختبار الشخصية بنمط DISC</h1>
+  <p>إعداد: <b>مدرسة ضباط الصف القياديين – قاعدة الملك فهد الجوية</b></p>
+</header>
+<div class="container">
+  <div class="brand">24 مجموعة «الأكثر / الأقل». اختر لكل مجموعة عبارة <b>الأكثر شبهًا بك</b> وعبارة <b>الأقل شبهًا بك</b>.</div>
+  <div class="box">
+    <p class="note">لا توجد إجابات صحيحة أو خاطئة. إذا اخترت نفس العبارة «أكثر» و«أقل» في مجموعة واحدة، سيطلب منك تعديلها.</p>
+    <div id="progress" class="progress">التقدّم: 0 / 24 مجموعة مكتملة</div>
+  </div>
+
+  <form id="discForm"></form>
+  <button id="submit" type="button">إظهار النتيجة</button>
+
+  <div id="result" class="box">
+    <h2>نتيجتك</h2>
+    <div class="legend">
+      <div class="chip"><span class="dot D"></span> D – المسيطر (Dominance)</div>
+      <div class="chip"><span class="dot I"></span> I – المؤثر (Influence)</div>
+      <div class="chip"><span class="dot S"></span> S – المستقر (Steadiness)</div>
+      <div class="chip"><span class="dot C"></span> C – المنضبط (Conscientiousness)</div>
+    </div>
+    <div id="bars"></div>
+    <canvas id="chart" width="720" height="380"></canvas>
+    <div class="box" style="background:#f8fafc">
+      <h3>وصف موجز:</h3>
+      <p id="desc"></p>
+    </div>
+  </div>
+
+  <footer>© مدرسة ضباط الصف القياديين – للاستخدام التعليمي داخل الفصل الذكي</footer>
+</div>
+
+<script>
+
+const DATA = [{"id": 1, "items": [{"text": "أتخذ القرار بسرعة", "type": "D"}, {"text": "أنشر الحماس بين زملائي", "type": "I"}, {"text": "أحافظ على هدوء المجموعة", "type": "S"}, {"text": "أرتّب التفاصيل بدقة", "type": "C"}]}, {"id": 2, "items": [{"text": "أواجه التحديات مباشرة", "type": "D"}, {"text": "أكوّن صداقات بسهولة", "type": "I"}, {"text": "أُظهر التعاطف مع الآخرين", "type": "S"}, {"text": "ألتزم بالقواعد والتعليمات", "type": "C"}]}, {"id": 3, "items": [{"text": "أفضّل النتائج السريعة", "type": "D"}, {"text": "أستمتع بالعروض والتقديم", "type": "I"}, {"text": "أحافظ على الاستقرار", "type": "S"}, {"text": "أحلّل المعلومات بهدوء", "type": "C"}]}, {"id": 4, "items": [{"text": "أحب المنافسة", "type": "D"}, {"text": "أتحلى بروح الدعابة", "type": "I"}, {"text": "أتعاون بصبر", "type": "S"}, {"text": "أدقّق في الأخطاء", "type": "C"}]}, {"id": 5, "items": [{"text": "أقود الفريق نحو الهدف", "type": "D"}, {"text": "أحفّز الجميع على المشاركة", "type": "I"}, {"text": "أدعم زملائي بهدوء", "type": "S"}, {"text": "أنظّم العمل بخطة واضحة", "type": "C"}]}, {"id": 6, "items": [{"text": "أجازف لاتخاذ قرار مهم", "type": "D"}, {"text": "أبني علاقات بسرعة", "type": "I"}, {"text": "أتجنب الصراعات", "type": "S"}, {"text": "أتوثّق من كل خطوة", "type": "C"}]}, {"id": 7, "items": [{"text": "أركز على الإنجاز", "type": "D"}, {"text": "أحب التفاعل الاجتماعي", "type": "I"}, {"text": "أبحث عن التوافق", "type": "S"}, {"text": "أحترم الأنظمة", "type": "C"}]}, {"id": 8, "items": [{"text": "أتحمّل المسؤولية فورًا", "type": "D"}, {"text": "أثرثر بحماس مع الفريق", "type": "I"}, {"text": "أحافظ على وتيرة ثابتة", "type": "S"}, {"text": "أجمع الأدلة قبل الحكم", "type": "C"}]}, {"id": 9, "items": [{"text": "أحسم الأمور عند التردد", "type": "D"}, {"text": "أُلهِم الآخرين بكلامي", "type": "I"}, {"text": "أُشعر الآخرين بالأمان", "type": "S"}, {"text": "أوثّق الحقائق والأرقام", "type": "C"}]}, {"id": 10, "items": [{"text": "أواجه المشاكل بدون خوف", "type": "D"}, {"text": "أبتهج في التجمعات", "type": "I"}, {"text": "أهدّئ التوتر", "type": "S"}, {"text": "أراجع الإجراءات", "type": "C"}]}, {"id": 11, "items": [{"text": "أطالب بمستوى عالٍ", "type": "D"}, {"text": "أحب سرد القصص", "type": "I"}, {"text": "أحترم الإيقاع الهادئ", "type": "S"}, {"text": "أتمسّك بالدقة", "type": "C"}]}, {"id": 12, "items": [{"text": "أقود عند الأزمات", "type": "D"}, {"text": "أُشجّع المشاركة", "type": "I"}, {"text": "أعمل بانسجام", "type": "S"}, {"text": "أحلّل المخاطر", "type": "C"}]}, {"id": 13, "items": [{"text": "أعطي أوامر واضحة", "type": "D"}, {"text": "أجيد الإقناع", "type": "I"}, {"text": "أستمع بتأنٍّ", "type": "S"}, {"text": "أُدقّق في التفاصيل الصغيرة", "type": "C"}]}, {"id": 14, "items": [{"text": "أحسم الخلاف سريعًا", "type": "D"}, {"text": "أُنعش الجو بالتفاؤل", "type": "I"}, {"text": "أواسي زميلي عند الصعوبات", "type": "S"}, {"text": "أقيس كل احتمال", "type": "C"}]}, {"id": 15, "items": [{"text": "أؤمن بالنتيجة قبل كل شيء", "type": "D"}, {"text": "أرحّب بالجميع بحرارة", "type": "I"}, {"text": "أُقدّر الروتين المنظم", "type": "S"}, {"text": "أكتب ملاحظات دقيقة", "type": "C"}]}, {"id": 16, "items": [{"text": "أفرض الإيقاع على الفريق", "type": "D"}, {"text": "أكوّن شبكة علاقات", "type": "I"}, {"text": "أحافظ على الانسجام", "type": "S"}, {"text": "ألتزم بالمنهجية", "type": "C"}]}, {"id": 17, "items": [{"text": "أواجه الاعتراض بقوة", "type": "D"}, {"text": "أجعل العمل ممتعًا", "type": "I"}, {"text": "أتجنب المخاطرة", "type": "S"}, {"text": "أختبر الفرضيات", "type": "C"}]}, {"id": 18, "items": [{"text": "أحب القرارات الجريئة", "type": "D"}, {"text": "أُسعِد الفريق بحضوري", "type": "I"}, {"text": "أحافظ على الاستقرار العاطفي", "type": "S"}, {"text": "أعتمد على البيانات", "type": "C"}]}, {"id": 19, "items": [{"text": "أتابع الهدف بلا تردد", "type": "D"}, {"text": "أعبر عن مشاعري بسهولة", "type": "I"}, {"text": "أحافظ على لباقة الحديث", "type": "S"}, {"text": "أرتّب الملفات والمعارف", "type": "C"}]}, {"id": 20, "items": [{"text": "أدفع الفريق للتقدّم", "type": "D"}, {"text": "أعطي مجاملات صادقة", "type": "I"}, {"text": "أعطي وقتًا للتأقلم", "type": "S"}, {"text": "أصمم نماذج عمل", "type": "C"}]}, {"id": 21, "items": [{"text": "أتحمل المخاطر المحسوبة", "type": "D"}, {"text": "أستمتع بالعمل الجماعي المرح", "type": "I"}, {"text": "أحب بيئة العمل الهادئة", "type": "S"}, {"text": "أعمل وفق أدلة وإثباتات", "type": "C"}]}, {"id": 22, "items": [{"text": "أضغط لإنهاء العمل مبكرًا", "type": "D"}, {"text": "أشارك قصصًا مُلهمة", "type": "I"}, {"text": "أبني الثقة بصبر", "type": "S"}, {"text": "أُجري مراجعات دقيقة", "type": "C"}]}, {"id": 23, "items": [{"text": "أقود المفاوضات بصرامة", "type": "D"}, {"text": "أجذب الانتباه بسهولة", "type": "I"}, {"text": "أحافظ على الود", "type": "S"}, {"text": "أضع قوائم تفصيلية", "type": "C"}]}, {"id": 24, "items": [{"text": "أُنجز تحت الضغط", "type": "D"}, {"text": "أُشيع الحماس في الفريق", "type": "I"}, {"text": "أحترم العادات المتفق عليها", "type": "S"}, {"text": "أتحقق من الجودة دائمًا", "type": "C"}]}];
+
+const form = document.getElementById('discForm');
+const progressEl = document.getElementById('progress');
+
+
+function validateGroup(id){
+  const most = form.querySelector('input[name="g'+id+'_most"]:checked');
+  const least = form.querySelector('input[name="g'+id+'_least"]:checked');
+  if(!most || !least) return false;
+  const mIdx = most.getAttribute('data-idx');
+  const lIdx = least.getAttribute('data-idx');
+  if(mIdx === lIdx) return 'conflict';
+  return true;
+}
+
+function updateProgress(){
+  let done = 0, conflict = 0;
+  DATA.forEach(g=>{
+    const v = validateGroup(g.id);
+    if(v === true) done++;
+    else if(v === 'conflict') conflict++;
+  });
+  progressEl.textContent = 'التقدّم: '+done+' / '+DATA.length+' مجموعة مكتملة' + (conflict? ' – توجد تعارضات تحتاج تعديل': '');
+}
+
+form.addEventListener('change', updateProgress);
+
+function calculate(){
+  for(const g of DATA){
+    const v = validateGroup(g.id);
+    if(v !== true){
+      alert(v==='conflict' ? ('مجموعة '+g.id+': لا يمكن اختيار نفس العبارة كـ "أكثر" و"أقل". عدّل اختيارك.') : ('أكمل الاختيارات في المجموعة '+g.id));
+      return;
+    }
+  }
+  let scores = {'D':0,'I':0,'S':0,'C':0};
+  DATA.forEach(g=>{
+    const most = form.querySelector('input[name="g'+g.id+'_most"]:checked').value;
+    const least = form.querySelector('input[name="g'+g.id+'_least"]:checked').value;
+    scores[most] += 1;
+    scores[least] -= 1;
+  });
+  showResult(scores);
+}
+
+function showBars(scores){
+  const bars = document.getElementById('bars');
+  bars.innerHTML = '';
+  const order = ['D','I','S','C'];
+  const names = {'D':'المسيطر','I':'المؤثر','S':'المستقر','C':'المنضبط'};
+  order.forEach(k=>{
+    const row = document.createElement('div');
+    row.className = 'barrow';
+    const label = document.createElement('div');
+    label.textContent = k+' – '+names[k];
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    const fill = document.createElement('div');
+    fill.className = 'fill '+k;
+    const val = scores[k];
+    const width = Math.max(0, Math.min(100, Math.round((val + 24) / 48 * 100)));
+    fill.style.width = width + '%';
+    bar.appendChild(fill);
+    const valEl = document.createElement('div');
+    valEl.textContent = (val>=0?'+':'') + val;
+    row.appendChild(label); row.appendChild(bar); row.appendChild(valEl);
+    bars.appendChild(row);
+  });
+}
+
+function drawChart(scores){
+  const c = document.getElementById('chart');
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  const order = ['D','I','S','C'];
+  const colors = {'D':'#ef4444','I':'#f59e0b','S':'#10b981','C':'#3b82f6'};
+  const maxAbs = 24;
+  const barW = 120, gap = 40, baseX = 70, baseY = c.height - 40, zeroY = baseY - (c.height - 120)/2;
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(50, zeroY, c.width-90, 2);
+  ctx.fillRect(50, 60, 2, baseY-60);
+  ctx.fillStyle = '#64748b';
+  ctx.fillText('+24', 10, 70);
+  ctx.fillText('0', 20, zeroY-4);
+  ctx.fillText('-24', 10, baseY-10);
+  order.forEach((k, i)=>{
+    const val = scores[k];
+    const x = baseX + i*(barW+gap);
+    const scale = (c.height - 140) / (2*maxAbs);
+    const h = Math.abs(val) * scale;
+    const y = val>=0 ? zeroY - h : zeroY;
+    ctx.fillStyle = colors[k];
+    ctx.fillRect(x, y, barW, h);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 16px Tahoma';
+    ctx.fillText(k, x+barW/2-6, baseY+18);
+    ctx.fillText((val>=0?'+':'')+val, x+barW/2-14, y - 6*(val>=0?1:-1));
+  });
+}
+
+function describe(scores){
+  const order = Object.keys(scores).sort((a,b)=>scores[b]-scores[a]);
+  const top = order[0];
+  const mix = order.slice(0,2).join('+');
+  const descs = {
+    'D':'تميل إلى الحزم وحسم القرارات والسعي للنتائج. تبرع في المواقف التي تتطلب سرعة وجرأة.',
+    'I':'تميل إلى التواصل والتأثير الإيجابي وبناء العلاقات. تبرع في التحفيز والعروض والعمل الجماعي.',
+    'S':'تميل إلى الاستقرار والدعم والعمل بتأنٍ. تبرع في صناعة الانسجام والحفاظ على وتيرة ثابتة.',
+    'C':'تميل إلى الدقة والتحليل والالتزام بالمعايير. تبرع في الجودة والتخطيط والتوثيق.'
+  };
+  const combos = {
+    'D+I':'قائد مبادر ومؤثر، يجمع بين الجرأة وإلهام الفريق.',
+    'D+S':'قائد حازم ومتزن، يجمع بين الحسم والهدوء.',
+    'D+C':'قائد صارم ومنهجي، يوازن بين النتائج والدقة.',
+    'I+S':'قائد اجتماعي داعم، يعزز الانسجام والتحفيز.',
+    'I+C':'قائد مؤثر ومنظّم، يجمع بين الحضور والاتقان.',
+    'S+C':'قائد ثابت ودقيق، موثوق في التفاصيل والإجراءات.'
+  };
+  let text = 'نمطك الغالب: <b>'+top+'</b> – '+descs[top];
+  if(combos[mix]) text += '<br>وميل ثانوي: <b>'+mix+'</b> – '+combos[mix];
+  return text;
+}
+
+function showResult(scores){
+  document.getElementById('result').style.display = 'block';
+  showBars(scores);
+  drawChart(scores);
+  document.getElementById('desc').innerHTML = describe(scores);
+  window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+}
+
+document.getElementById('submit').addEventListener('click', calculate);
+
+function buildForm(){
+  const DATA_JS = DATA;
+  DATA_JS.forEach(g=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'group';
+    const h = document.createElement('h3');
+    h.textContent = 'المجموعة ' + g.id;
+    wrap.appendChild(h);
+    g.items.forEach((it, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'row';
+      const txt = document.createElement('div');
+      txt.textContent = it.text;
+      const ml = document.createElement('div');
+      ml.className = 'ml';
+      const most = document.createElement('label');
+      most.innerHTML = '<span class="pill">الأكثر</span> <input type="radio" name="g'+g.id+'_most" value="'+it.type+'" data-idx="'+idx+'">';
+      const least = document.createElement('label');
+      least.innerHTML = '<span class="pill">الأقل</span> <input type="radio" name="g'+g.id+'_least" value="'+it.type+'" data-idx="'+idx+'">';
+      ml.appendChild(most); ml.appendChild(least);
+      row.appendChild(txt); row.appendChild(ml);
+      wrap.appendChild(row);
+    });
+    document.getElementById('discForm').appendChild(wrap);
+  });
+}
+
+
+buildForm();
+updateProgress();
+
+</script>
+</body>
+</html>
